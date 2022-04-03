@@ -9,6 +9,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.servlet.view.RedirectView;
 import java.security.Principal;
@@ -16,60 +17,54 @@ import java.sql.Date;
 import java.util.ArrayList;
 
 @Controller
-public class AppUserController {
-    @Autowired
-    AppUserRepository appUserRepository;
-
+public class AppUserController
+{
     @Autowired
     PasswordEncoder encoder;
 
-    @GetMapping("/")
-    public String getRoot(Principal p, Model m) {
+    @Autowired
+    AppUserRepository applicationUserRepository;
 
-        AppUser applicationUser = null;
-        if (p != null) {
-            applicationUser = appUserRepository.findByUsername(p.getName());
-        }
-        m.addAttribute("user", applicationUser);
+    @PostMapping("/users")
+    public RedirectView createUser(String username, String password, String fullName, Date dateOfBirth, String bio)
+    {
+        AppUser newUser = new AppUser(username,
 
-        return "root";
+                encoder.encode(password),
+                fullName,
+                dateOfBirth,
+                bio);
+        applicationUserRepository.save(newUser);
+        Authentication authentication = new UsernamePasswordAuthenticationToken(newUser, null, new ArrayList<>());
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+        return new RedirectView("/myprofile");
     }
 
-    @GetMapping("/myprofile")
-    public String getProfile(Principal p, Model m) {
-        AppUser applicationUser = null;
+    @GetMapping("/users/{id}")
+    public String getIndividualUserPage(@PathVariable long id, Model model, Principal principal)
+    {
+        AppUser currentUser = (AppUser)((UsernamePasswordAuthenticationToken) principal).getPrincipal();
+        AppUser individualUser = applicationUserRepository.findById(id).get();
+        model.addAttribute("individualUser", individualUser);
+        model.addAttribute("userID", currentUser.getId());
+        model.addAttribute("username", currentUser.getUsername());
 
-        if (p != null) {
-            applicationUser = appUserRepository.findByUsername(p.getName());
-        }
-        m.addAttribute("user", applicationUser);
         return "userLog";
     }
 
-    @GetMapping("/signup")
-    public String getSignUp() {
-        return "registration";
-    }
-
-    @PostMapping("/signup")
-    public RedirectView createUser(String username, String password, String firstName, String lastName,
-                                   Date dateOfBirth, String bio) {
-        AppUser newUser = new AppUser(username, encoder.encode(password), firstName, lastName,
-                dateOfBirth,
-                bio);
-        appUserRepository.save(newUser);
-        Authentication authentication = new UsernamePasswordAuthenticationToken(newUser, null, new ArrayList<>());
-
-        SecurityContextHolder.getContext().setAuthentication(authentication);
-
-        return new RedirectView("/");
+    @GetMapping("/myprofile")
+    public String getCurrentUserProfile(Principal principal, Model model)
+    {
+        AppUser currentUser = (AppUser)((UsernamePasswordAuthenticationToken) principal).getPrincipal();
+        model.addAttribute("individualUser", currentUser);
+        model.addAttribute("userID", currentUser.getId());
+        return "userLog";
     }
 
     @GetMapping("/login")
     public String getLoginPage()
     {
         return "login";
-    }
-}
+    }}
 
 

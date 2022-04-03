@@ -1,14 +1,11 @@
 package com.example.demo.Models;
-
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
-
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
+import javax.persistence.*;
 import java.sql.Date;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 @Entity
 public class AppUser implements UserDetails
@@ -16,11 +13,15 @@ public class AppUser implements UserDetails
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long id;
+
     String username;
     String password;
     public String fullName;
     public Date dateOfBirth;
     public String bio;
+
+    @OneToMany(fetch = FetchType.EAGER, mappedBy = "poster")
+    public List<postUser> posts;
 
     public AppUser() {}
 
@@ -31,19 +32,36 @@ public class AppUser implements UserDetails
         this.fullName = fullName;
         this.dateOfBirth = dateOfBirth;
         this.bio = bio;
+        this.posts = new ArrayList<>();
     }
 
-    public AppUser(String username, String encode) {
-
+    public Long getId() {
+        return id;
     }
 
-    public AppUser(String username, String encode, String firstName, String lastName, Date dateOfBirth, String bio) {
-
+    public String getFullName() {
+        return fullName;
     }
 
+
+    public List<postUser> getPosts()
+    {
+        return this.posts;
+    }
+
+    public void setPosts(ArrayList<postUser> postsList)
+    {
+        this.posts = postsList;
+    }
+
+    public void addPosts(postUser post)
+    {
+        this.posts.add(post);
+    }
 
     @Override
-    public Collection<? extends GrantedAuthority> getAuthorities() {
+    public Collection<? extends GrantedAuthority> getAuthorities()
+    {
         return null;
     }
 
