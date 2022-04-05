@@ -16,6 +16,8 @@ import java.security.Principal;
 import java.sql.Date;
 import java.util.ArrayList;
 
+import static org.springframework.util.ClassUtils.isPresent;
+
 @Controller
 public class AppUserController
 {
@@ -65,6 +67,33 @@ public class AppUserController
     public String getLoginPage()
     {
         return "login";
-    }}
+    }
 
+@PostMapping("/follow/{id}")
+public RedirectView followAUser(@PathVariable long id, Principal principal)
+{
+    AppUser currentUser = applicationUserRepository.findByUsername(principal.getName());
+    AppUser individualUser = applicationUserRepository.findById(id).get();
+    currentUser.addFollowers(individualUser);
+    applicationUserRepository.save(currentUser);
+    return new RedirectView("/users/"+ id);
+}
 
+    @GetMapping("/feed")
+    public String getUsersThatIFollow(Principal principal, Model model)
+    {
+        AppUser currentUser = (AppUser)((UsernamePasswordAuthenticationToken) principal).getPrincipal();
+        model.addAttribute("currentUser", applicationUserRepository.findByUsername(principal.getName()));
+        model.addAttribute("username", currentUser.getUsername());
+        return "feed";
+    }
+
+    @GetMapping("/users")
+    public String displayUsers(Principal principal, Model model) {
+        AppUser currentUser = (AppUser)((UsernamePasswordAuthenticationToken) principal).getPrincipal();
+        model.addAttribute("currentUser", applicationUserRepository.findByUsername(principal.getName()));
+        model.addAttribute("allUsers", applicationUserRepository.findAll());
+        model.addAttribute("username", currentUser.getUsername());
+        return "users";
+    }
+}

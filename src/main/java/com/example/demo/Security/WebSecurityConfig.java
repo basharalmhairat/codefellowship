@@ -38,11 +38,8 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .cors().disable()
                 .csrf().disable()
                 .authorizeRequests()
-                // Routes that match these 4 strings, allow anyone.
                 .antMatchers("/", "/login", "/signup", "/error").permitAll()
-                // A POST request to routes that match users, allow anyone.
                 .antMatchers(HttpMethod.POST, "/users").permitAll()
-                // Any other request, you have to be logged in.
                 .anyRequest().authenticated()
                 .and()
                 .formLogin()
