@@ -6,6 +6,10 @@ import java.sql.Date;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
+import javax.persistence.*;
+import java.sql.Date;
+import java.util.*;
 
 @Entity
 public class AppUser implements UserDetails
@@ -23,6 +27,18 @@ public class AppUser implements UserDetails
     @OneToMany(fetch = FetchType.EAGER, mappedBy = "poster")
     public List<postUser> posts;
 
+    @ManyToMany
+    @JoinTable
+            (
+                    name = "followers",
+                    joinColumns = { @JoinColumn(name = "primaryUser") },
+                    inverseJoinColumns = { @JoinColumn(name = "followedUser") }
+            )
+    public Set<AppUser> usersThatIFollow;
+
+    @ManyToMany(mappedBy = "usersThatIFollow")
+    public Set<AppUser> usersThatFollowMe;
+
     public AppUser() {}
 
     public AppUser(String username, String password, String fullName, Date dateOfBirth, String bio)
@@ -35,6 +51,7 @@ public class AppUser implements UserDetails
         this.posts = new ArrayList<>();
     }
 
+
     public Long getId() {
         return id;
     }
@@ -42,7 +59,6 @@ public class AppUser implements UserDetails
     public String getFullName() {
         return fullName;
     }
-
 
     public List<postUser> getPosts()
     {
@@ -57,6 +73,16 @@ public class AppUser implements UserDetails
     public void addPosts(postUser post)
     {
         this.posts.add(post);
+    }
+
+    public Set<AppUser> getUsersThatIFollow()
+    {
+        return this.usersThatIFollow;
+    }
+
+    public void addFollowers(AppUser followingUser)
+    {
+        usersThatIFollow.add(followingUser);
     }
 
     @Override
